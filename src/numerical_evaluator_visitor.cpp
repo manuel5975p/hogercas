@@ -1,6 +1,7 @@
 #include <numerical_evaluator_visitor.hpp>
 #include <parser.hpp>
 #include <constant_fusion.hpp>
+#include <evaluator_visitor.hpp>
 numerical_evaluator_visitor::numerical_evaluator_visitor(){
 
 }
@@ -21,6 +22,8 @@ std::unique_ptr<expression> numerical_evaluator_visitor::visit(const unary_expre
             case 2:
                 return std::make_unique<constant>(mpf_class(-std::get<2>(v->repr)));
                 break;
+            default:
+                assert(false && "Wtf");
         }
     }
     else{
@@ -30,29 +33,56 @@ std::unique_ptr<expression> numerical_evaluator_visitor::visit(const unary_expre
 std::unique_ptr<expression> numerical_evaluator_visitor::visit(const operation_expression& arg){
     std::unique_ptr<expression> leval = arg.left->accept(*this);
     std::unique_ptr<expression> reval = arg.right->accept(*this);
-    return fuse(dynamic_cast<constant*>(leval.get()), dynamic_cast<constant*>(reval.get()), arg.m_operation);
+    return fuse_numerical(dynamic_cast<constant*>(leval.get()), dynamic_cast<constant*>(reval.get()), arg.m_operation);
 }
 std::unique_ptr<expression> numerical_evaluator_visitor::visit(const bracket_expression& arg){
     return arg.clone();
 }
 std::unique_ptr<expression> numerical_evaluator_visitor::visit(const function& arg){
-
+    if(arg.name == "sin"){
+        std::unique_ptr<expression> ceval = arg.args[0]->accept(*this);
+        if(auto v = dynamic_cast<constant*>(ceval.get())){
+            mpfr::mpreal mpr;
+            switch(v->repr.index()){
+                case 0:
+                mpr = mpfr::mpreal(std::get<0>(v->repr).get_mpz_t());
+                break;
+                case 1:
+                mpr = mpfr::mpreal(std::get<1>(v->repr).get_mpq_t());
+                break;
+                case 2:
+                mpr = mpfr::mpreal(std::get<2>(v->repr).get_mpf_t());
+                break;
+            }
+            mpr = mpfr::sin(mpr);
+            mpf_class ret;
+            mpfr_get_f(ret.get_mpf_t(), mpr.mpfr_srcptr(), mpfr::mpreal::get_default_rnd());
+            return std::make_unique<constant>(ret);
+        }
+        else{
+            assert(false && "NEval didn't yield constant");
+        }
+    }
+    else{
+        throw evaluation_error("Unrecognized function: " + arg.name);
+    }
 }
 std::unique_ptr<expression> numerical_evaluator_visitor::visit(const function_argument& arg){
-
+    assert(false && "Hmst");
+    return nullptr;
 }
 std::unique_ptr<expression> numerical_evaluator_visitor::visit(const command& arg){
-
+    return arg.clone();
 }
 std::unique_ptr<expression> numerical_evaluator_visitor::visit(const variable& arg){
-
+    throw evaluation_error("Unresolved variable: " + arg.data);
 }
 std::unique_ptr<expression> numerical_evaluator_visitor::visit(const constant& arg){
-
+    return arg.clone();
 }
 std::unique_ptr<expression> numerical_evaluator_visitor::visit(const operator_expression& arg){
-
+    return arg.clone();
 }
 std::unique_ptr<expression> numerical_evaluator_visitor::visit(const tensor_expression& arg){
-
+    return arg.clone();
 }

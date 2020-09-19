@@ -162,6 +162,7 @@ struct variable : expression{
     virtual std::unique_ptr<expression>& get_child(size_t i){
         //#pragma GCC diagnostic ignored "-Wreturn-type"
         assert(false && "This node has no children");
+        throw 123;
     }
     virtual std::unique_ptr<expression> clone()const{
         return std::make_unique<variable>(data);
@@ -263,6 +264,7 @@ struct constant : expression{
     virtual std::unique_ptr<expression>& get_child(size_t i){
         //#pragma GCC diagnostic ignored "-Wreturn-type"
         assert(false && "This node has no children");
+        throw 123;
     }
     virtual std::unique_ptr<expression> clone()const{
         return std::make_unique<constant>(*this);
@@ -303,7 +305,7 @@ struct constant : expression{
     
 };
 enum command_type{
-    CLEAR, SOLVE
+    CLEAR, SOLVE, NUMERIC
 };
 inline std::string cmd_string(command_type type){
     switch(type){
@@ -314,11 +316,15 @@ inline std::string cmd_string(command_type type){
     return std::string("");
 }
 inline std::optional<command_type> cmd_type(const std::string& r){
+    //TODO Fix this shit
     if(r == "Clear"){
         return CLEAR;
     }
     else if(r == "Solve"){
         return SOLVE;
+    }
+    else if(r == "N"){
+        return NUMERIC;
     }
     return std::nullopt;
 }

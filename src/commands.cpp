@@ -3,7 +3,14 @@
 #include <memory.hpp>
 #include <optional>
 #include <equation_solver.hpp>
-std::optional<std::string> execute(command* cmd){
+#include <evaluator_visitor.hpp>
+#include <numerical_evaluator_visitor.hpp>
+#include <cassert>
+command_result::command_result() : output(std::nullopt), message(std::nullopt){}
+command_result::command_result(std::string str) : output(std::nullopt), message(std::move(str)){}
+command_result::command_result(std::unique_ptr<expression> exp) : output(std::move(exp)), message(std::nullopt){}
+command_result::command_result(std::unique_ptr<expression> exp, std::string str) : output(std::move(exp)), message(std::move(str)){}
+command_result execute(command* cmd){
     std::string warning = "";
     if(cmd->cmd == CLEAR){
         for(auto& cptr : cmd->args){
@@ -35,20 +42,30 @@ std::optional<std::string> execute(command* cmd){
             }
         }
         if(warning.empty()){
-            return std::nullopt;
+            return command_result();
         }
-        return warning;
+        return command_result(std::move(warning));
     }
-if(cmd->cmd == SOLVE){
-    if(cmd->args.size() != 3){
-        throw invalid_command("Solve needs 3 arguments");
+    if(cmd->cmd == SOLVE){
+        if(cmd->args.size() != 3){
+            throw invalid_command("Solve needs 3 arguments");
+        }
+        if(!dynamic_cast<variable*>(cmd->args.back().get())){
+            throw invalid_command("Last argument of solve must be a variable");
+        }
+        std::unique_ptr<expression> sol = solve_single_variable(cmd->args[0], cmd->args[1], dynamic_cast<variable*>(cmd->args[2].get())->data);
+        return command_result(std::move(sol));
+        //sol->print();
+        //std::cout << std::endl;
     }
-    if(!dynamic_cast<variable*>(cmd->args.back().get())){
-        throw invalid_command("Last argument of solve must be a variable");
+    if(cmd->cmd == NUMERIC){
+        assert(cmd->child_count() == 1);
+        evaluator_visitor evalvis;
+        numerical_evaluator_visitor nevalvis;
+        std::unique_ptr<expression> evaled = cmd->get_child(0)->accept(evalvis);
+        std::unique_ptr<expression> numeric_result = evaled->accept(nevalvis);
+        numeric_result->print();
+        std::cout << std::endl;
     }
-    std::unique_ptr<expression> sol = solve_single_variable(cmd->args[0], cmd->args[1], dynamic_cast<variable*>(cmd->args[2].get())->data);
-    sol->print();
-    std::cout << std::endl;
-}
-    return std::nullopt;
+    return command_result();
 }

@@ -25,7 +25,7 @@
 #include <deserializer.hpp>
 #include <cstring>
 #include <filesystem>
-std::vector<std::string> vocabulary{"Clear", "Solve"};
+std::vector<std::string> vocabulary{"Clear", "Solve", "N"};
 unsigned long long nanoTime(){
     using namespace std::chrono;
     return duration_cast<nanoseconds>(high_resolution_clock::now().time_since_epoch()).count();
@@ -75,9 +75,9 @@ void sig_handler(int sig){
     puts("Use Ctrl+D to exit");
 }
 int main(int argc, char** argv){
-    if (signal(SIGINT, sig_handler) == SIG_ERR){
-        //std::cout << "Shit" << std::endl;
-    }
+    //if (signal(SIGINT, sig_handler) == SIG_ERR){
+    //    //std::cout << "Shit" << std::endl;
+    //}
     std::unordered_map<std::string, decltype(&mpfr::exp)> funcs;
     rl_attempted_completion_function = completer;
     po::parser parser;
@@ -111,7 +111,17 @@ int main(int argc, char** argv){
     std::string a;
     while(true){
         try{
+            /*std::thread fred([]{
+                const char* shit = "a";
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                rl_insert_text("godamit");
+                rl_redisplay();
+                //rl_clear_pending_input();
+                //rl_forced_update_display();
+            });*/
+            //rl_stuff_char('a');
             std::unique_ptr<char, decltype(&std::free)> redl(readline(">> "), std::free);
+            //fred.join();
             if(redl == nullptr)break;
             a = redl.get();
             add_history(redl.get());
@@ -140,8 +150,12 @@ int main(int argc, char** argv){
             }
             else if(auto v = dynamic_cast<command*>(e.get())){
                 auto opt = execute(v);
-                if(opt){
-                    std::cout << opt.value() << "\n";
+                if(opt.message){
+                    std::cout << "msg: " << opt.message.value() << "\n";
+                }
+                if(opt.output){
+                    opt.output.value()->print();
+                    std::cout << std::endl;
                 }
             }
             else if(auto v = dynamic_cast<tensor_expression*>(e.get())){
