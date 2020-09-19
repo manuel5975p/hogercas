@@ -107,6 +107,11 @@ int main(int argc, char** argv){
         brake:
         (void)0;
     }
+    for(size_t i = 0;i < current_notebook.input_history.size();i++){
+        std::stringstream sstr;
+        current_notebook.input_history[i]->print(sstr);
+        add_history(sstr.str().c_str());
+    }
     std::cout << "Welcome to Hogercas! Please type a command:" << std::endl;
     std::string a;
     while(true){
@@ -126,6 +131,7 @@ int main(int argc, char** argv){
             a = redl.get();
             add_history(redl.get());
             std::unique_ptr<expression> e = parse(a);
+            current_notebook.input_history.push_back(e->clone());
             if(auto v = dynamic_cast<operation_expression*>(e.get())){
                 if(v->m_operation == assignment){
                     apply(v);
@@ -136,6 +142,7 @@ int main(int argc, char** argv){
                     auto e2 = e->accept(ev);
                     e2->print();
                     std::cout << std::endl;
+                    current_notebook.output_history.push_back(std::move(e2));
                     serializer_visitor srv;
                     //e->accept(srv);
                     //std::unique_ptr<expression> exp = deserialize_expression(srv.data);
@@ -156,10 +163,12 @@ int main(int argc, char** argv){
                 if(opt.output){
                     opt.output.value()->print();
                     std::cout << std::endl;
+                    current_notebook.output_history.push_back(std::move(opt.output.value()));
                 }
             }
             else if(auto v = dynamic_cast<tensor_expression*>(e.get())){
                 v->print();
+                current_notebook.output_history.push_back(std::move(e));
                 std::cout << "\n\n";
             }
             else{
@@ -167,6 +176,7 @@ int main(int argc, char** argv){
                 evaluator_visitor ev;
                 auto e2 = e->accept(ev);
                 e2->print();
+                current_notebook.output_history.push_back(std::move(e2));
                 std::cout << "\n";
             }
         }

@@ -534,6 +534,9 @@ struct operation_expression : expression{
             case power:
                 ost << " ^ ";
                 break;
+            case assignment:
+                ost << " := ";
+                break;
             
         }
         if(auto v = dynamic_cast<operation_expression*>(right.get())){

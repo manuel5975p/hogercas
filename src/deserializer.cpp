@@ -24,7 +24,7 @@ std::unique_ptr<expression> deserialize_expression(std::stringbuf& strbuf){
         case tensor_expression_e:
             return deserialize_tensor_expression(strbuf);
         default:
-            throw 5;
+            throw std::logic_error("Unable to deserialize");
     }
 }
 std::unique_ptr<expression> deserialize_unary_expression(std::stringbuf& strbuf){

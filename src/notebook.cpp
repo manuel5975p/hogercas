@@ -78,12 +78,14 @@ void notebook::save(const std::filesystem::path& p){
     for(auto it = input_history.begin();it != input_history.end();it++){
         serializer_visitor srv;
         (**it).accept(srv);
-        ofile.write((char*)&size, sizeof(size_t));
+        //ofile.write((char*)&size, sizeof(size_t));
+        ofile.write(srv.data.str().c_str(), srv.data.str().size());
     }
     for(auto it = output_history.begin();it != output_history.end();it++){
         serializer_visitor srv;
         (**it).accept(srv);
-        ofile.write((char*)&size, sizeof(size_t));
+        //ofile.write((char*)&size, sizeof(size_t));
+        ofile.write(srv.data.str().c_str(), srv.data.str().size());
     }
     ofile.close();
 }
