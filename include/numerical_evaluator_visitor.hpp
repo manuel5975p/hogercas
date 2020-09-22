@@ -6,8 +6,10 @@
 #include <vector>
 #include <unordered_set>
 #include <unordered_map>
+#include <cstddef>
 struct numerical_evaluator_visitor : visitor_base{
-    numerical_evaluator_visitor();
+    size_t precision;
+    numerical_evaluator_visitor(size_t prec);
     virtual std::unique_ptr<expression> visit(const expression& arg);
     virtual std::unique_ptr<expression> visit(const unary_expression& arg);
     virtual std::unique_ptr<expression> visit(const operation_expression& arg);

@@ -2,6 +2,7 @@
 #include <parser.hpp>
 
 std::unique_ptr<expression> serializer_visitor::visit(const expression& arg){
+    arg.print();
     throw 213;
 }
 std::unique_ptr<expression> serializer_visitor::visit(const unary_expression& arg){
@@ -83,7 +84,17 @@ std::unique_ptr<expression> serializer_visitor::visit(const constant& arg){
                 data.sputn(buf.data(), o_count);
             }
         case 2:
-            throw std::invalid_argument("Exproting floats is not supproted");
+            {
+                std::stringstream sstr;
+                sstr.precision(std::get<2>(arg.repr).get_prec());
+                sstr << std::get<2>(arg.repr);
+                std::string str = sstr.str();
+                sstr.clear();
+                size_t o_count = str.size();
+                data.sputn((char*)&o_count, 8);
+                data.sputn(str.c_str(), o_count);
+                //throw std::invalid_argument("Exproting floats is not supproted");
+            }
     }
     return nullptr;
 }

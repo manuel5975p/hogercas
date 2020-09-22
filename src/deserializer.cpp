@@ -66,7 +66,8 @@ std::unique_ptr<expression> deserialize_command(std::stringbuf& strbuf){
     strbuf.sgetn((char*)&argc, sizeof(size_t));
     std::vector<std::unique_ptr<expression>> vec;
     uint64_t cmdt;
-    strbuf.sgetn((char*)&argc, sizeof(uint64_t));
+    strbuf.sgetn((char*)&cmdt, sizeof(uint64_t));
+    //std::cout << argc << std::endl;
     vec.reserve(argc);
     for(size_t i = 0;i < argc;i++){
         vec.push_back(deserialize_expression(strbuf));
@@ -114,7 +115,14 @@ std::unique_ptr<expression> deserialize_constant(std::stringbuf& strbuf){
             return c;
         }
         case 2:
-            throw std::invalid_argument("Improting floats is not supproted");
+            size_t i_count;
+            strbuf.sgetn((char*)&i_count, sizeof(size_t));
+            std::string tstr;
+            tstr.resize(i_count);
+            strbuf.sgetn(tstr.data(), i_count);
+            auto c = std::make_unique<constant>(mpf_class(tstr));
+            return c;
+            //throw std::invalid_argument("Improting floats is not supproted");
     }
     return nullptr;
 }

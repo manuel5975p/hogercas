@@ -2,7 +2,7 @@
 #include <parser.hpp>
 #include <constant_fusion.hpp>
 #include <evaluator_visitor.hpp>
-numerical_evaluator_visitor::numerical_evaluator_visitor(){
+numerical_evaluator_visitor::numerical_evaluator_visitor(size_t prec) : precision(prec){
 
 }
 std::unique_ptr<expression> numerical_evaluator_visitor::visit(const expression& arg){
@@ -45,17 +45,19 @@ std::unique_ptr<expression> numerical_evaluator_visitor::visit(const function& a
             mpfr::mpreal mpr;
             switch(v->repr.index()){
                 case 0:
-                mpr = mpfr::mpreal(std::get<0>(v->repr).get_mpz_t());
+                mpr = mpfr::mpreal(std::get<0>(v->repr).get_mpz_t(), precision);
                 break;
                 case 1:
-                mpr = mpfr::mpreal(std::get<1>(v->repr).get_mpq_t());
+                mpr = mpfr::mpreal(std::get<1>(v->repr).get_mpq_t(), precision);
                 break;
                 case 2:
                 mpr = mpfr::mpreal(std::get<2>(v->repr).get_mpf_t());
                 break;
             }
+            mpr.set_prec(precision);
             mpr = mpfr::sin(mpr);
             mpf_class ret;
+            ret.set_prec(precision);
             mpfr_get_f(ret.get_mpf_t(), mpr.mpfr_srcptr(), mpfr::mpreal::get_default_rnd());
             return std::make_unique<constant>(ret);
         }
@@ -78,7 +80,24 @@ std::unique_ptr<expression> numerical_evaluator_visitor::visit(const variable& a
     throw evaluation_error("Unresolved variable: " + arg.data);
 }
 std::unique_ptr<expression> numerical_evaluator_visitor::visit(const constant& arg){
-    return arg.clone();
+    mpfr::mpreal mpr;
+    //std::cout << precision << "\n";
+    switch(arg.repr.index()){
+        case 0:
+        mpr = mpfr::mpreal(std::get<0>(arg.repr).get_mpz_t(), precision);
+        break;
+        case 1:
+        mpr = mpfr::mpreal(std::get<1>(arg.repr).get_mpq_t(), precision);
+        break;
+        case 2:
+        mpr = mpfr::mpreal(std::get<2>(arg.repr).get_mpf_t());
+        mpr.set_prec(precision);
+        break;
+    }
+    mpf_class ret;
+    ret.set_prec(precision);
+    mpfr_get_f(ret.get_mpf_t(), mpr.mpfr_srcptr(), mpfr::mpreal::get_default_rnd());
+    return std::make_unique<constant>(ret);
 }
 std::unique_ptr<expression> numerical_evaluator_visitor::visit(const operator_expression& arg){
     return arg.clone();

@@ -69,7 +69,9 @@ enum node_id : char{
     unary_expression_e, bracket_expression_e, variable_e, derivation_operator_e, constant_e, command_e, function_e, function_argument_e, operation_expression_e, tensor_expression_e
 };
 struct expression{
-    expression(){}
+    protected:
+    expression(){/*throw std::logic_error("Pls don't construct expression base class.");*/}
+    public:
     virtual scalar evaluate(const mapping_type& symbols){throw 7;}
     virtual scalar evaluate(){
         std::unordered_map<std::string, scalar> map;
@@ -287,6 +289,7 @@ struct constant : expression{
         }
     }
     virtual void print(std::ostream& ost = std::cout)const{
+        
         switch(repr.index()){
             case 0:
                 ost << std::get<0>(repr);
@@ -295,7 +298,9 @@ struct constant : expression{
                 ost << std::get<1>(repr);
                 break;
             case 2:
+                ost.precision(std::get<2>(repr).get_prec());
                 ost << std::get<2>(repr);
+                ost << " (Precision = " << std::get<2>(repr).get_prec() << ")";
                 break;
         }
     }
@@ -304,13 +309,17 @@ struct constant : expression{
     }
     
 };
-enum command_type{
+enum command_type : uint64_t{
     CLEAR, SOLVE, NUMERIC
 };
 inline std::string cmd_string(command_type type){
     switch(type){
         case CLEAR:
             return std::string("Clear");
+        case SOLVE:
+            return std::string("Solve");
+        case NUMERIC:
+            return std::string("N");
     }
     assert(false && "Invalid command type");
     return std::string("");
@@ -350,6 +359,20 @@ struct command : expression{
         return std::make_unique<command>(cmd, std::move(vec));
     }
     node_id id()const{return command_e;}
+    virtual std::unique_ptr<expression> accept(visitor_base& visitor)const{
+        return visitor.visit(*this);
+    }
+    virtual void print(std::ostream& ost = std::cout)const{
+        ost << cmd_string(cmd);
+        ost << '[';
+        for(size_t i = 0;i < args.size();i++){
+            args[i]->print(ost);
+            if(i < args.size() - 1){
+                ost << ", ";
+            }
+        }
+        ost << ']';
+    }
 };
 struct tensor_expression : expression{
     size_t dimensions;

@@ -59,13 +59,16 @@ command_result execute(command* cmd){
         //std::cout << std::endl;
     }
     if(cmd->cmd == NUMERIC){
-        assert(cmd->child_count() == 1);
+        if(cmd->child_count() != 1){
+            throw invalid_command("N needs 1 argument");
+        }
         evaluator_visitor evalvis;
-        numerical_evaluator_visitor nevalvis;
+        numerical_evaluator_visitor nevalvis(1024);
         std::unique_ptr<expression> evaled = cmd->get_child(0)->accept(evalvis);
         std::unique_ptr<expression> numeric_result = evaled->accept(nevalvis);
-        numeric_result->print();
-        std::cout << std::endl;
+        return command_result(std::move(numeric_result));
+        //numeric_result->print();
+        //std::cout << std::endl;
     }
     return command_result();
 }
