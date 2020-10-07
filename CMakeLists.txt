@@ -70,4 +70,14 @@ if(BUILD_TESTS)
   target_include_directories(tester PRIVATE include)
   target_link_libraries(tester "pthread")
   target_link_libraries(tester "boost_system")
+  FetchContent_Declare(
+      ctre
+      GIT_REPOSITORY https://github.com/hanickadot/compile-time-regular-expressions/
+  )
+  FetchContent_GetProperties(ctre)
+  if(NOT ctre_POPULATED)
+      FetchContent_Populate(ctre)
+      add_subdirectory(${ctre_SOURCE_DIR} ${ctre_BINARY_DIR})
+  endif()
+  target_link_libraries(tester ctre)
 endif()
