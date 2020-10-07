@@ -300,7 +300,7 @@ struct constant : expression{
             case 2:
                 ost.precision(std::get<2>(repr).get_prec());
                 ost << std::get<2>(repr);
-                ost << " (Precision = " << std::get<2>(repr).get_prec() << ")";
+                //ost << " (Precision = " << std::get<2>(repr).get_prec() << ")";
                 break;
         }
     }
