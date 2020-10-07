@@ -33,25 +33,25 @@ unsigned long long nanoTime(){
 char* completion_generator(const char* text, int state) {
     static std::vector<std::string> matches;
     static size_t match_index = 0;
-    if (state == 0) {
+    if(state == 0) {
         matches.clear();
         match_index = 0;
         std::string textstr = std::string(text);
-        for (auto word : vocabulary) {
+        for(const auto& word : vocabulary) {
             if (word.size() >= textstr.size() &&
                 word.compare(0, textstr.size(), textstr) == 0) {
                 matches.push_back(word);
             }
         }
-        for(auto& wordp : current_notebook.variables){
-            auto& word = wordp.first;
+        for(const auto& wordp : current_notebook.variables){
+            const auto& word = wordp.first;
             if (word.size() >= textstr.size() &&
                 word.compare(0, textstr.size(), textstr) == 0) {
                 matches.push_back(word);
             }
         }
-        for(auto& wordp : current_notebook.functions){
-            auto& word = wordp.first;
+        for(const auto& wordp : current_notebook.functions){
+            const auto& word = wordp.first;
             if (word.size() >= textstr.size() &&
                 word.compare(0, textstr.size(), textstr) == 0) {
                 matches.push_back(word);
