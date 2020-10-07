@@ -56,6 +56,15 @@ set(CMAKE_CXX_FLAGS_MAXSPEED "-Ofast -funroll-loops -s -DNDEBUG -flto -fomit-fra
 add_definitions(-DBOOST_ASIO_DISABLE_CONCEPTS)
 file(GLOB hogercas_src "src/*.cpp" "include/*.hpp")
 add_executable(hogercas ${hogercas_src})
+FetchContent_Declare(
+    mpreal
+    GIT_REPOSITORY https://github.com/advanpix/mpreal
+)
+FetchContent_GetProperties(mpreal)
+if(NOT mpreal_POPULATED)
+    FetchContent_Populate(mpreal)
+    target_include_directories(hogercas PUBLIC ${mpreal_SOURCE_DIR})
+endif()
 target_link_libraries(hogercas "mpfr")
 target_link_libraries(hogercas "gmp")
 target_link_libraries(hogercas "gmpxx")
