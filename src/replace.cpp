@@ -66,8 +66,8 @@ void replace_funcs(std::unique_ptr<expression>& exp, std::unordered_set<std::str
             }
         }
         replace_funcs(exp->get_child(i), already);
-        for(auto p : localready){
-            already.erase(already.find(p));
+        for(const auto& p : localready){
+            already.erase(p);
         }
     }
 }
