@@ -83,36 +83,46 @@ int main(int argc, char** argv){
     po::parser parser;
     std::vector<std::string> files;
     parser[""].bind(files);
+    auto& testing = parser["testing"].abbreviation('t');
+    auto& help = parser["help"].abbreviation('h');
+
     if(!parser(argc, argv)) {
         std::cerr << "errors occurred; aborting\n";
         return -1;
     }
-    if(files.size() >= 1){
-        if(files.size() > 1){
-            std::cout << "Ignoring everything but the first file\n";
-        }
-        current_notebook = notebook(files[0]);
+    if(help.was_set()){
+        std::cout << parser << "\n";
+        return 0;
     }
-    else{
-        std::cout << "No notebook path specified...\n";
-        std::string path = ".";
-        for (const auto & entry : std::filesystem::directory_iterator(path)){
-            if(entry.path().string().find(".nb") == entry.path().string().size() - 3){
-                std::cout << "Opening " << entry.path().string() << "\n";
-                current_notebook = notebook(entry.path().string());
-                goto brake;
+    if(!testing.was_set()){
+        if(files.size() >= 1){
+            if(files.size() > 1){
+                std::cout << "Ignoring everything but the first file\n";
             }
+            current_notebook = notebook(files[0]);
         }
-        std::cout << "Creating new notebook\n";
-        brake:
-        (void)0;
+        else{
+            std::cout << "No notebook path specified...\n";
+            std::string path = ".";
+            for (const auto & entry : std::filesystem::directory_iterator(path)){
+                if(entry.path().string().find(".nb") == entry.path().string().size() - 3){
+                    std::cout << "Opening " << entry.path().string() << "\n";
+                    current_notebook = notebook(entry.path().string());
+                    goto brake;
+                }
+            }
+            std::cout << "Creating new notebook\n";
+            brake:
+            (void)0;
+        }
+        for(size_t i = 0;i < current_notebook.input_history.size();i++){
+            std::stringstream sstr;
+            current_notebook.input_history[i]->print(sstr);
+            add_history(sstr.str().c_str());
+        }
     }
-    for(size_t i = 0;i < current_notebook.input_history.size();i++){
-        std::stringstream sstr;
-        current_notebook.input_history[i]->print(sstr);
-        add_history(sstr.str().c_str());
-    }
-    std::cout << "Welcome to Hogercas! Please type a command:" << std::endl;
+    if(!testing.was_set())
+        std::cout << "Welcome to Hogercas! Please type a command:" << std::endl;
     std::string a;
     while(true){
         try{

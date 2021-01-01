@@ -223,12 +223,17 @@ struct constant : expression{
     }
     constant(std::string data){
         //std::cout << "Constructing constant: " << data << "\n";
-        if(data.find('.') == std::string::npos){
-            repr = mpz_class(data);
-        }
-        else{
+        assert((data.find('.') == std::string::npos) || (data.find('.') == std::string::npos));
+        if(data.find('.') != std::string::npos){
             repr = mpf_class(data);
             actual_if_float = std::move(data);
+        }
+        else if(data.find('/') != std::string::npos){
+            repr = mpq_class(data);
+            actual_if_float = std::move(data);
+        }
+        else{
+            repr = mpz_class(data);
         }
     }
     

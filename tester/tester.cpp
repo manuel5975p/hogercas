@@ -35,12 +35,12 @@ std::tuple<int, std::string, std::string> do_case(char* begin, char* end){
     bp::ipstream out;
     bp::opstream in;
     std::string_view vw(begin, end - begin);
-    bp::child c("./hogercas", bp::std_out > out, bp::std_in < in);
+    bp::child c("./hogercas", "--testing", bp::std_out > out, bp::std_in < in);
     //c.detach();
     std::string str;
-    std::getline(out, str);
-    std::getline(out, str);
-    std::getline(out, str);
+    //std::getline(out, str);
+    //std::getline(out, str);
+    //std::getline(out, str);
     unsigned line = 1;
     for(auto match : ctre::range<"\\s*\"([^\"]*)\"\\s*->\\s*\"([^\"]*)\"\\s*;">(vw)){
         //if(match.get<1>().str().find("Clear") != std::string::npos){
@@ -65,13 +65,13 @@ std::tuple<int, std::string, std::string> do_case(char* begin, char* end){
                     if(match3.get<0>().str() == match.get<2>().str()){
                         in << EOF << std::endl;
                         in.flush();
-                        c.wait_for(std::chrono::milliseconds(100));
+                        c.wait_for(std::chrono::milliseconds(10));
                         return std::make_tuple(0, std::string(), std::string());
                     }
                     else{
                         in << EOF << std::endl;
                         in.flush();
-                        c.wait_for(std::chrono::milliseconds(100));
+                        c.wait_for(std::chrono::milliseconds(10));
                         return std::make_tuple(line, match.get<2>().str(), match3.get<0>().str());
                     }
                 }
@@ -80,20 +80,20 @@ std::tuple<int, std::string, std::string> do_case(char* begin, char* end){
                 if(match3.get<0>().str() == match.get<2>().str()){
                     in << EOF << std::endl;
                     in.flush();
-                    c.wait_for(std::chrono::milliseconds(100));
+                    c.wait_for(std::chrono::milliseconds(10));
                     return std::make_tuple(0, std::string(), std::string());
                 }
                 else{
                     in << EOF << std::endl;
                     in.flush();
-                    c.wait_for(std::chrono::milliseconds(100));
+                    c.wait_for(std::chrono::milliseconds(10));
                     return std::make_tuple(line, match.get<2>().str(), match3.get<0>().str());
                 }
             }
             if(match.get<2>().str() != str){
                 in << EOF << std::endl;
                 in.flush();
-                c.wait_for(std::chrono::milliseconds(100));
+                c.wait_for(std::chrono::milliseconds(10));
                 return std::make_tuple(line, match.get<2>().str(), str);
             }
         }
@@ -102,7 +102,7 @@ std::tuple<int, std::string, std::string> do_case(char* begin, char* end){
     out:
     in << EOF << std::endl;
     in.flush();
-    c.wait_for(std::chrono::milliseconds(100));
+    c.wait_for(std::chrono::milliseconds(10));
     return std::make_tuple(0, std::string(), std::string());
     
 }
