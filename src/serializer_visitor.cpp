@@ -83,6 +83,7 @@ std::unique_ptr<expression> serializer_visitor::visit(const constant& arg){
                 data.sputn((char*)&o_count, 8);
                 data.sputn(buf.data(), o_count);
             }
+            break;
         case 2:
             {
                 std::stringstream sstr;
