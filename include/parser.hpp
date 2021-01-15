@@ -691,6 +691,9 @@ std::unique_ptr<expression> consume_one(iterator& pos, iterator limit){
                             throw parser_error("No closing function parenthesis found", std::make_pair(errpos, errpos));
                         }
                         if(pos == next_stop){
+                            if(pos->type == PAR_RIGHT && args.size() == 0){
+                                break;
+                            }
                             throw parser_error("One function argument is empty", std::make_pair(errpos, errpos + 2));
                         }
                         std::unique_ptr<expression> ret = parse(pos, next_stop);

@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <termios.h>
+#include <cstdlib>
 #include <thread>
 #include <atomic>
 #include <readline/readline.h>
@@ -78,6 +79,7 @@ int main(int argc, char** argv){
     //if (signal(SIGINT, sig_handler) == SIG_ERR){
     //    //std::cout << "Shit" << std::endl;
     //}
+    std::string savepath;
     std::unordered_map<std::string, decltype(&mpfr::exp)> funcs;
     rl_attempted_completion_function = completer;
     po::parser parser;
@@ -103,15 +105,20 @@ int main(int argc, char** argv){
         }
         else{
             std::cout << "No notebook path specified...\n";
-            std::string path = ".";
+            std::string path = std::getenv("HOME");
+            if(std::getenv("HOME") == NULL){
+                path = ".";
+            }
             for (const auto & entry : std::filesystem::directory_iterator(path)){
                 if(entry.path().string().find(".nb") == entry.path().string().size() - 3){
                     std::cout << "Opening " << entry.path().string() << "\n";
+                    savepath = entry.path().string();
                     current_notebook = notebook(entry.path().string());
                     goto brake;
                 }
             }
             std::cout << "Creating new notebook\n";
+            savepath = path + "/autosave.nb";
             brake:
             (void)0;
         }
@@ -240,7 +247,7 @@ int main(int argc, char** argv){
             std::cout << ("invalid_command_error: ") << e.what() << std::endl;
         }
     }
-    current_notebook.save("autosave.nb");
+    current_notebook.save(savepath);
     std::cout << "\n";
     return 0;
 }

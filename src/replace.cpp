@@ -34,7 +34,12 @@ void replace_args(std::unique_ptr<expression>& exp,std::unordered_map<unsigned, 
     for(size_t i = 0;i < exp->child_count();i++){
         if(auto v = dynamic_cast<function_argument*>(exp->get_child(i).get())){
             auto it = argnames.find(v->number);
-            exp->get_child(i) = it->second->clone();
+            if(it == argnames.end()){
+                exp->get_child(i) = std::make_unique<variable>("$arg" + std::to_string(v->number));
+            }
+            else{
+                exp->get_child(i) = it->second->clone();
+            }
         }
         else{
             replace_args(exp->get_child(i), argnames);

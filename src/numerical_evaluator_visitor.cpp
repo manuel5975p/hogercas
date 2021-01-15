@@ -65,6 +65,32 @@ std::unique_ptr<expression> numerical_evaluator_visitor::visit(const function& a
             assert(false && "NEval didn't yield constant");
         }
     }
+    else if(arg.name == "cos"){
+        std::unique_ptr<expression> ceval = arg.args[0]->accept(*this);
+        if(auto v = dynamic_cast<constant*>(ceval.get())){
+            mpfr::mpreal mpr;
+            switch(v->repr.index()){
+                case 0:
+                mpr = mpfr::mpreal(std::get<0>(v->repr).get_mpz_t(), precision);
+                break;
+                case 1:
+                mpr = mpfr::mpreal(std::get<1>(v->repr).get_mpq_t(), precision);
+                break;
+                case 2:
+                mpr = mpfr::mpreal(std::get<2>(v->repr).get_mpf_t());
+                break;
+            }
+            mpr.set_prec(precision);
+            mpr = mpfr::cos(mpr);
+            mpf_class ret;
+            ret.set_prec(precision);
+            mpfr_get_f(ret.get_mpf_t(), mpr.mpfr_srcptr(), mpfr::mpreal::get_default_rnd());
+            return std::make_unique<constant>(ret);
+        }
+        else{
+            assert(false && "NEval didn't yield constant");
+        }
+    }
     else{
         throw evaluation_error("Unrecognized function: " + arg.name);
     }
